@@ -1,4 +1,29 @@
 <template>
+  <div
+    v-if="ishidePreloader"
+    class="fixed w-100 h-100 opacity-80 bg-purple-800 inset-0 z-50 flex items-center justify-center"
+  >
+    <svg
+      class="animate-spin -ml-1 mr-3 h-12 w-12 text-white"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        class="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        stroke-width="4"
+      ></circle>
+      <path
+        class="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      ></path>
+    </svg>
+  </div>
   <div class="container">
     <section>
       <div class="flex">
@@ -9,7 +34,9 @@
           <div class="mt-1 relative rounded-md shadow-md">
             <input
               v-model="ticker"
-              v-on:keydown.enter="add"
+              @keydown.enter="add(ticker)"
+              @keyup="find"
+              @input="isAddedTicker = false"
               type="text"
               name="wallet"
               id="wallet"
@@ -18,34 +45,25 @@
             />
           </div>
           <div
+            v-if="ticker.length"
             class="flex bg-white shadow-md p-1 rounded-md shadow-md flex-wrap"
           >
             <span
+              v-for="coin in coinsList"
+              :key="coin.key"
+              @click="add(coin)"
               class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
             >
-              BTC
-            </span>
-            <span
-              class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
-            >
-              DOGE
-            </span>
-            <span
-              class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
-            >
-              BCH
-            </span>
-            <span
-              class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
-            >
-              CHD
+              {{ coin }}
             </span>
           </div>
-          <div class="text-sm text-red-600">Такой тикер уже добавлен</div>
+          <div v-if="isAddedTicker" class="text-sm text-red-600">
+            Такой тикер уже добавлен
+          </div>
         </div>
       </div>
       <button
-        @click="add"
+        @click="add(ticker)"
         type="button"
         class="my-4 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
       >
@@ -157,15 +175,42 @@ export default {
       tickers: [],
       sel: null,
       graph: [],
+      isAddedTicker: false,
+      ishidePreloader: true,
+      allCoinNames: [],
+      coinsList: [],
     };
   },
 
+  created: function () {
+    (async () => {
+      const f = await fetch(`https://min-api.cryptocompare.com/data/all/coinlist?summary=true`);
+      const data = await f.json();
+      this.allCoinNames = Object.keys(data.Data);
+      this.ishidePreloader = false;
+    })()
+  },
+
   methods: {
-    add() {
+    add(coin) {
+      console.log('add')
       const currentTicker = {
-        name: this.ticker,
+        name: coin.toUpperCase(),
         price: '-',
       };
+
+      this.isAddedTicker = false;
+
+      this.tickers.forEach((ticker) => {
+        if (ticker.name === currentTicker.name) {
+          this.isAddedTicker = true;
+        }
+      });
+
+      if (this.isAddedTicker) {
+        // this.ticker = ''
+        return;
+      }
 
       this.tickers.push(currentTicker);
       setInterval(async () => {
@@ -174,12 +219,22 @@ export default {
         );
         const data = await f.json();
         this.tickers.find((t) => t.name === currentTicker.name).price =
-          data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(2);
+          data.USD > 1 ? data.USD.toFixed(2) : data.USD?.toPrecision(2);
         if (this.sel?.name === currentTicker.name) {
           this.graph.push(data.USD);
         }
       }, 5000);
       this.ticker = '';
+    },
+
+    find() {
+      console.log('find')
+      let regexp = new RegExp(`^${this.ticker.toUpperCase()}`)
+      const coinsList = this.allCoinNames.filter(coinName => regexp.test(coinName))
+      this.coinsList = coinsList.sort().splice(0, 4);
+      // if(this.isAddedTicker) {
+      //   this.isAddedTicker = false
+      // }
     },
 
     handleDelete(tickerToRemove) {
