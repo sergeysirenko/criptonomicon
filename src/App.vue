@@ -189,11 +189,33 @@ export default {
       this.allCoinNames = Object.keys(data.Data);
       this.ishidePreloader = false;
     })()
+
+    const tickersData = localStorage.getItem('criptonomicon-list')
+
+    if(tickersData) {
+      this.tickers = JSON.parse(tickersData)
+      this.tickers.forEach(ticker => {
+        this.subscribeToUpdates(ticker.name)
+      })
+    }
   },
 
   methods: {
+    subscribeToUpdates(tickerName) {
+      setInterval(async () => {
+        const f = await fetch(
+          `https://min-api.cryptocompare.com/data/price?fsym=${tickerName}&tsyms=USD&api_key=5155c07e7f292a67895b5ad6b05b8dad7aa32cb1c2135a193068b1045c174750`
+        );
+        const data = await f.json();
+        this.tickers.find((t) => t.name === tickerName).price =
+          data.USD > 1 ? data.USD.toFixed(2) : data.USD?.toPrecision(2);
+        if (this.sel?.name === tickerName) {
+          this.graph.push(data.USD);
+        }
+      }, 5000);
+    },
+
     add(coin) {
-      console.log('add')
       const currentTicker = {
         name: coin.toUpperCase(),
         price: '-',
@@ -213,22 +235,14 @@ export default {
       }
 
       this.tickers.push(currentTicker);
-      setInterval(async () => {
-        const f = await fetch(
-          `https://min-api.cryptocompare.com/data/price?fsym=${currentTicker.name}&tsyms=USD&api_key=5155c07e7f292a67895b5ad6b05b8dad7aa32cb1c2135a193068b1045c174750`
-        );
-        const data = await f.json();
-        this.tickers.find((t) => t.name === currentTicker.name).price =
-          data.USD > 1 ? data.USD.toFixed(2) : data.USD?.toPrecision(2);
-        if (this.sel?.name === currentTicker.name) {
-          this.graph.push(data.USD);
-        }
-      }, 5000);
+
+      localStorage.setItem('criptonomicon-list', JSON.stringify(this.tickers));
+      this.subscribeToUpdates(currentTicker.name)
+
       this.ticker = '';
     },
 
     find() {
-      console.log('find')
       let regexp = new RegExp(`^${this.ticker.toUpperCase()}`)
       const coinsList = this.allCoinNames.filter(coinName => regexp.test(coinName))
       this.coinsList = coinsList.sort().splice(0, 4);
