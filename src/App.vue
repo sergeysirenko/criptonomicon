@@ -73,9 +73,7 @@
         <template v-if="tickers.length">
             <hr class="w-full border-t border-gray-600 my-4" />
             <div>
-                <p>
-                    Страница {{ page }} из {{ Math.ceil(tickers.length / 6) }}
-                </p>
+                <p>Страница {{ page }} из {{ Math.ceil(tickers.length / 6) }}</p>
                 <button
                     class="my-4 mx-2 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                     :disabled="!(page > 1)"
@@ -97,7 +95,7 @@
             <hr class="w-full border-t border-gray-600 my-4" />
             <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
                 <div
-                    v-for="t in filteredTickers()"
+                    v-for="t in paginatedTickers"
                     :key="t.name"
                     @click="select(t)"
                     :class="{
@@ -138,7 +136,7 @@
             <h3 class="text-lg leading-6 font-medium text-gray-900 my-8">{{ sel.name }} - USD</h3>
             <div class="flex items-end border-gray-600 border-b border-l h-64">
                 <div
-                    v-for="(bar, idx) in normalizeGraph()"
+                    v-for="(bar, idx) in normalizedGraph"
                     :key="idx"
                     :style="{ height: `${bar}%` }"
                     class="bg-purple-800 border w-10 h-24"
@@ -186,9 +184,36 @@ export default {
             allCoinNames: [],
             coinsList: [],
             page: 1,
-            filter: '',
-            hasNextPage: true
+            filter: ''
         };
+    },
+
+    computed: {
+        startIndex() {
+            return this.page - 1 * 6;
+        },
+
+        endIndex() {
+            return this.page * 6;
+        },
+
+        filteredTickers() {
+            return this.tickers.filter((ticker) => ticker.name.includes(this.filter.toUpperCase()));
+        },
+
+        paginatedTickers() {
+            return this.filteredTickers.slice(this.startIndex, this.endIndex);
+        },
+
+        hasNextPage() {
+            return this.filteredTickers.length > this.endIndex;
+        },
+
+        normalizedGraph() {
+            const maxValue = Math.max(...this.graph);
+            const minValue = Math.min(...this.graph);
+            return this.graph.map((price) => 5 + ((price - minValue) * 95) / (maxValue - minValue));
+        },
     },
 
     created: function () {
@@ -199,14 +224,14 @@ export default {
             this.ishidePreloader = false;
         })();
 
-        const windowData = Object.fromEntries(new URL(window.location).searchParams.entries())
+        const windowData = Object.fromEntries(new URL(window.location).searchParams.entries());
 
-        if(windowData.filter) {
-            this.filter = windowData.filter
+        if (windowData.filter) {
+            this.filter = windowData.filter;
         }
 
-        if(windowData.page) {
-            this.page = windowData.page
+        if (windowData.page) {
+            this.page = windowData.page;
         }
 
         const tickersData = localStorage.getItem('criptonomicon-list');
@@ -220,30 +245,19 @@ export default {
     },
 
     methods: {
-        filteredTickers() {
-            const start = (this.page - 1) * 6;
-            const end = this.page * 6;
-
-            const filteredTickers = this.tickers.filter((ticker) => ticker.name.includes(this.filter.toUpperCase()));
-
-            this.hasNextPage = filteredTickers.length > end;
-
-            return filteredTickers.slice(start, end);
-        },
-
         subscribeToUpdates(tickerName) {
             setInterval(async () => {
                 const f = await fetch(
-                    `https://min-api.cryptocompare.com/data/price?fsym=${tickerName}&tsyms=USD&api_key=5155c07e7f292a67895b5ad6b05b8dad7aa32cb1c2135a193068b1045c174750`
+                    `https://min-api.cryptocompare.com/data/price?fsym=${tickerName}&tsyms=USD&api_key=fdd37f1fb724ea104ed69a32224b4607f760f594d90d09f1d42fb935b7290871`
+                    // 5155c07e7f292a67895b5ad6b05b8dad7aa32cb1c2135a193068b1045c174750
                 );
                 const data = await f.json();
-                console.log(data)
                 this.tickers.find((t) => t.name === tickerName).price =
                     data.USD > 1 ? data.USD.toFixed(2) : data.USD?.toPrecision(2);
                 if (this.sel?.name === tickerName) {
                     this.graph.push(data.USD);
                 }
-            }, 5000);
+            }, 60000);
         },
 
         add(coin) {
@@ -281,12 +295,6 @@ export default {
 
         handleDelete(tickerToRemove) {
             this.tickers = this.tickers.filter((t) => t !== tickerToRemove);
-        },
-
-        normalizeGraph() {
-            const maxValue = Math.max(...this.graph);
-            const minValue = Math.min(...this.graph);
-            return this.graph.map((price) => 5 + ((price - minValue) * 95) / (maxValue - minValue));
         },
 
         select(ticker) {
