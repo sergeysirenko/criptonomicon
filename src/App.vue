@@ -106,7 +106,7 @@
                     <div class="px-4 py-5 sm:p-6 text-center">
                         <dt class="text-sm font-medium text-gray-500 truncate">{{ ticker.name }} - USD</dt>
                         <dd class="mt-1 text-3xl font-semibold text-gray-900">
-                            {{ ticker.price }}
+                            {{ formatPrice(ticker.price) }}
                         </dd>
                     </div>
                     <div class="w-full border-t border-gray-200"></div>
@@ -170,6 +170,8 @@
 </template>
 
 <script>
+import {subscribeToTicker} from './api'
+
 export default {
     name: 'App',
 
@@ -190,7 +192,7 @@ export default {
 
     computed: {
         startIndex() {
-            return this.page - 1 * 6;
+            return this.page - 6;
         },
 
         endIndex() {
@@ -238,38 +240,44 @@ export default {
 
         const windowData = Object.fromEntries(new URL(window.location).searchParams.entries());
 
-        if (windowData.filter) {
-            this.filter = windowData.filter;
-        }
-
-        if (windowData.page) {
-            this.page = windowData.page;
-        }
+        const VALID_KEYS = ['filter', 'page'];
+        VALID_KEYS.forEach(key => {
+            if (windowData[key]) {
+                this[key] = windowData[key];
+            }
+        })
 
         const tickersData = localStorage.getItem('criptonomicon-list');
 
         if (tickersData) {
             this.tickers = JSON.parse(tickersData);
-            this.tickers.forEach((ticker) => {
-                this.subscribeToUpdates(ticker.name);
-            });
+
+            this.tickers.forEach(ticker => {
+                subscribeToTicker(ticker.name, () => {})
+            })
+
+            setInterval(this.updateTickers, 60000)
         }
     },
 
     methods: {
-        subscribeToUpdates(tickerName) {
-            setInterval(async () => {
-                const f = await fetch(
-                    `https://min-api.cryptocompare.com/data/price?fsym=${tickerName}&tsyms=USD&api_key=fdd37f1fb724ea104ed69a32224b4607f760f594d90d09f1d42fb935b7290871`
-                    // 5155c07e7f292a67895b5ad6b05b8dad7aa32cb1c2135a193068b1045c174750
-                );
-                const data = await f.json();
-                this.tickers.find((t) => t.name === tickerName).price =
-                    data.USD > 1 ? data.USD.toFixed(2) : data.USD?.toPrecision(2);
-                if (this.selectedTicker?.name === tickerName) {
-                    this.graph.push(data.USD);
-                }
-            }, 60000);
+        formatPrice(price) {
+            if (price === '-') {
+                return price;
+            }
+
+            return price > 1 ? price.toFixed(2) : price.toPrecision(2);
+        },
+        async updateTickers() {
+            // if(!this.tickers.length) {
+            //     return;
+            // }
+            //
+            // const exchangeData = await loadTickers(this.tickers.map( t => t.name ));
+            // this.tickers.forEach(ticker => {
+            //     const price = exchangeData[ticker.name.toUpperCase()];
+            //     ticker.price = price ?? '-';
+            // })
         },
 
         add(coin) {
@@ -292,8 +300,8 @@ export default {
 
             this.tickers = [...this.tickers, currentTicker];
 
-            this.subscribeToUpdates(currentTicker.name);
-
+            // setInterval(this.updateTickers, 60000)
+            subscribeToTicker(this.ticker.name, () => {})
             this.ticker = '';
             this.filter = '';
         },
