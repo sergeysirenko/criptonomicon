@@ -253,7 +253,9 @@ export default {
             this.tickers = JSON.parse(tickersData);
 
             this.tickers.forEach(ticker => {
-                subscribeToTicker(ticker.name, () => {})
+                subscribeToTicker(ticker.name, (price) => {
+                    console.log('ticker price changed to', price, ticker.name)
+                })
             })
 
             setInterval(this.updateTickers, 60000)
