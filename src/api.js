@@ -26,9 +26,10 @@ export const subscribeToTicker = (ticker, cb) => {
     tickersHandlers.set(ticker, [...subscribers, cb])
 }
 
-export const unsubscribeFromTicker = (ticker, cb) => {
-    const subscribers = tickersHandlers.get(ticker) || [];
-    tickersHandlers.set(ticker, subscribers.filter(fn => fn !== cb))
+export const unsubscribeFromTicker = (ticker) => {
+    tickersHandlers.delete(ticker);
+    // const subscribers = tickersHandlers.get(ticker) || [];
+    // tickersHandlers.set(ticker, subscribers.filter(fn => fn !== cb))
 }
 
 setInterval(loadTickers, 50000)

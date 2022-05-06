@@ -170,7 +170,7 @@
 </template>
 
 <script>
-import {subscribeToTicker} from './api'
+import {subscribeToTicker, unsubscribeFromTicker} from './api'
 
 export default {
     name: 'App',
@@ -192,7 +192,7 @@ export default {
 
     computed: {
         startIndex() {
-            return this.page - 6;
+            return (this.page - 1) * 6;
         },
 
         endIndex() {
@@ -253,9 +253,7 @@ export default {
             this.tickers = JSON.parse(tickersData);
 
             this.tickers.forEach(ticker => {
-                subscribeToTicker(ticker.name, (price) => {
-                    console.log('ticker price changed to', price, ticker.name)
-                })
+                subscribeToTicker(ticker.name, (newPrice) => this.updateTicker(ticker.name, newPrice))
             })
 
             setInterval(this.updateTickers, 60000)
@@ -263,6 +261,10 @@ export default {
     },
 
     methods: {
+        updateTicker(tickerName, price) {
+            this.tickers.filter(ticker => ticker.name === tickerName).forEach(ticker => ticker.price = price)
+        },
+
         formatPrice(price) {
             if (price === '-') {
                 return price;
@@ -270,6 +272,7 @@ export default {
 
             return price > 1 ? price.toFixed(2) : price.toPrecision(2);
         },
+
         async updateTickers() {
             // if(!this.tickers.length) {
             //     return;
@@ -303,7 +306,7 @@ export default {
             this.tickers = [...this.tickers, currentTicker];
 
             // setInterval(this.updateTickers, 60000)
-            subscribeToTicker(this.ticker.name, () => {})
+            subscribeToTicker(currentTicker.name, (newPrice) => this.updateTicker(currentTicker.name, newPrice))
             this.ticker = '';
             this.filter = '';
         },
@@ -319,6 +322,7 @@ export default {
             if(this.selectedTicker === tickerToRemove) {
                 this.selectedTicker = null;
             }
+            unsubscribeFromTicker(tickerToRemove.name)
         },
 
         select(ticker) {
