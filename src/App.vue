@@ -262,7 +262,14 @@ export default {
 
     methods: {
         updateTicker(tickerName, price) {
-            this.tickers.filter(ticker => ticker.name === tickerName).forEach(ticker => ticker.price = price)
+            this.tickers
+                .filter(ticker => ticker.name === tickerName)
+                .forEach(ticker => {
+                    if(ticker === this.selectedTicker) {
+                        this.graph.push(price)
+                    }
+                    ticker.price = price
+                })
         },
 
         formatPrice(price) {
@@ -270,7 +277,7 @@ export default {
                 return price;
             }
 
-            return price > 1 ? price.toFixed(2) : price.toPrecision(2);
+            return price > 1 ? price.toFixed(2) : price.toPrecision(3);
         },
 
         async updateTickers() {
