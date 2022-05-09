@@ -53,4 +53,17 @@ export const unsubscribeFromTicker = (ticker) => {
     // tickersHandlers.set(ticker, subscribers.filter(fn => fn !== cb))
 }
 
+const sender = new BroadcastChannel('criptonomicon-channel');
+const receiver = new BroadcastChannel('criptonomicon-channel');
+
+sender.onmessage = (senderEvent) => {
+    console.log('I send message from sender', senderEvent)
+}
+
+receiver.onmessage = (receiverEvent) => {
+    console.log('I take message from receiver', receiverEvent)
+}
+
+sender.postMessage('update_title');
+
 window.tickers = tickersHandlers;
