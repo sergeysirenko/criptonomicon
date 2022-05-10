@@ -5,9 +5,15 @@ const tickersHandlers = new Map();
 const socket = new WebSocket(`wss://streamer.cryptocompare.com/v2?api_key=${API_KEY}`)
 
 const AGGREGATE_INDEX = '5';
+const ERROR_INDEX = '500';
+const INVALID_SUB = 'INVALID_SUB';
 
 socket.addEventListener('message', data => {
-    const { TYPE: type, FROMSYMBOL: currency, PRICE: newPrice } = JSON.parse(data.data);
+    const { TYPE: type, MESSAGE: message, FROMSYMBOL: currency, PRICE: newPrice } = JSON.parse(data.data);
+    console.log(tickersHandlers.get(currency));
+    if(type === ERROR_INDEX || message === INVALID_SUB) {
+        console.log(currency);
+    }
     if(type !== AGGREGATE_INDEX || newPrice === undefined) {
         return;
     }
@@ -53,17 +59,15 @@ export const unsubscribeFromTicker = (ticker) => {
     // tickersHandlers.set(ticker, subscribers.filter(fn => fn !== cb))
 }
 
-const sender = new BroadcastChannel('criptonomicon-channel');
-const receiver = new BroadcastChannel('criptonomicon-channel');
-
-sender.onmessage = (senderEvent) => {
-    console.log('I send message from sender', senderEvent)
-}
-
-receiver.onmessage = (receiverEvent) => {
-    console.log('I take message from receiver', receiverEvent)
-}
-
-sender.postMessage('update_title');
-
-window.tickers = tickersHandlers;
+// const sender = new BroadcastChannel('criptonomicon-channel');
+// const receiver = new BroadcastChannel('criptonomicon-channel');
+//
+// sender.onmessage = (senderEvent) => {
+//     console.log('I send message from sender', senderEvent)
+// }
+//
+// receiver.onmessage = (receiverEvent) => {
+//     console.log('I take message from receiver', receiverEvent)
+// }
+//
+// window.tickers = tickersHandlers;
