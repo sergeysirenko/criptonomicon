@@ -5,14 +5,16 @@ const tickersHandlers = new Map();
 const socket = new WebSocket(`wss://streamer.cryptocompare.com/v2?api_key=${API_KEY}`)
 
 const AGGREGATE_INDEX = '5';
-const ERROR_INDEX = '500';
-const INVALID_SUB = 'INVALID_SUB';
 
 socket.addEventListener('message', data => {
-    const { TYPE: type, MESSAGE: message, FROMSYMBOL: currency, PRICE: newPrice } = JSON.parse(data.data);
-    console.log(tickersHandlers.get(currency));
-    if(type === ERROR_INDEX || message === INVALID_SUB) {
-        console.log(currency);
+    const { TYPE: type, FROMSYMBOL: currency, PRICE: newPrice, PARAMETER: parameter } = JSON.parse(data.data);
+
+    if(parameter) {
+        console.log(parameter.split('~')[2]);
+        // sendToWebSocket({
+        //     "action": "SubAdd",
+        //     "subs": [`5~CCCAGG~A5T~BTC`]
+        // })
     }
     if(type !== AGGREGATE_INDEX || newPrice === undefined) {
         return;
@@ -23,7 +25,7 @@ socket.addEventListener('message', data => {
 
 function sendToWebSocket(message) {
     const stringifiesMessage = JSON.stringify(message);
-
+    // console.log(stringifiesMessage)
     if(socket.readyState === WebSocket.OPEN) {
         socket.send(stringifiesMessage);
         return;
@@ -32,17 +34,17 @@ function sendToWebSocket(message) {
     socket.addEventListener('open', () => socket.send(stringifiesMessage), { once: true })
 }
 
-function subscribeToTickerOnWs(ticker) {
+function subscribeToTickerOnWs(ticker, currency = 'USD') {
     sendToWebSocket({
         "action": "SubAdd",
-        "subs": [`5~CCCAGG~${ticker}~USD`]
+        "subs": [`5~CCCAGG~${ticker}~${currency}`]
     })
 }
 
-function unSubscribeToTickerOnWs(ticker) {
+function unSubscribeToTickerOnWs(ticker, currency = 'BTC') {
     sendToWebSocket({
         "action": "SubRemove",
-        "subs": [`5~CCCAGG~${ticker}~USD`]
+        "subs": [`5~CCCAGG~${ticker}~${currency}`]
     })
 }
 
@@ -55,19 +57,4 @@ export const subscribeToTicker = (ticker, cb) => {
 export const unsubscribeFromTicker = (ticker) => {
     tickersHandlers.delete(ticker);
     unSubscribeToTickerOnWs(ticker);
-    // const subscribers = tickersHandlers.get(ticker) || [];
-    // tickersHandlers.set(ticker, subscribers.filter(fn => fn !== cb))
 }
-
-// const sender = new BroadcastChannel('criptonomicon-channel');
-// const receiver = new BroadcastChannel('criptonomicon-channel');
-//
-// sender.onmessage = (senderEvent) => {
-//     console.log('I send message from sender', senderEvent)
-// }
-//
-// receiver.onmessage = (receiverEvent) => {
-//     console.log('I take message from receiver', receiverEvent)
-// }
-//
-// window.tickers = tickersHandlers;
