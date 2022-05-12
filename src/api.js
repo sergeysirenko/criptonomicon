@@ -8,18 +8,20 @@ const AGGREGATE_INDEX = '5';
 
 socket.addEventListener('message', data => {
     const { TYPE: type, FROMSYMBOL: currency, PRICE: newPrice, PARAMETER: parameter } = JSON.parse(data.data);
-
+    // console.log(tickersHandlers)
     if(parameter) {
-        console.log(parameter.split('~')[2]);
+        // console.log(parameter.split('~')[2]);
         // sendToWebSocket({
         //     "action": "SubAdd",
         //     "subs": [`5~CCCAGG~A5T~BTC`]
         // })
+        return;
     }
     if(type !== AGGREGATE_INDEX || newPrice === undefined) {
         return;
     }
     const handlers = tickersHandlers.get(currency) ?? [];
+    // console.log(handlers)
     handlers.forEach(fn => fn(newPrice))
 })
 
