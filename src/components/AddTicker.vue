@@ -17,14 +17,14 @@
                     />
                 </div>
                 <div v-if="ticker.length" class="flex bg-white shadow-md p-1 rounded-md shadow-md flex-wrap">
-                        <span
-                            v-for="coin in coinsList"
-                            :key="coin.key"
-                            @click="add(coin)"
-                            class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
-                        >
-                            {{ coin }}
-                        </span>
+                    <span
+                        v-for="coin in coinsList"
+                        :key="coin.key"
+                        @click="add(coin)"
+                        class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
+                    >
+                        {{ coin }}
+                    </span>
                 </div>
                 <div v-if="isAddedTicker" class="text-sm text-red-600">Такой тикер уже добавлен</div>
             </div>
@@ -62,17 +62,17 @@ export default {
     },
 
     methods: {
-        add(coin) {
-            if(this.checkCoin(coin)) return;
+        add(ticker) {
+            if(this.checkTicker(ticker)) return;
 
-            this.$emit('add-ticker', coin);
+            this.$emit('add-ticker', ticker);
         },
 
-        checkCoin(coin) {
+        checkTicker(ticker) {
             this.isAddedTicker = false;
 
-            this.tickersList.forEach((ticker) => {
-                if (ticker.name === coin) {
+            this.tickersList.forEach((coin) => {
+                if (coin.name === ticker) {
                     this.isAddedTicker = true;
                 }
             });
