@@ -19,7 +19,13 @@
     </div>
     <div class="container">
 
-        <AddTicker @add-ticker="add" @find-ticker="find" :coins-list="coinsList" :tickers-list="tickers"/>
+        <AddTicker
+            @add-ticker="add"
+            @find-ticker="find"
+            :reset-ticker="resetTicker"
+            :coins-list="coinsList"
+            :is-added-ticker="isAddedTicker"
+        />
 
         <template v-if="tickers.length">
             <hr class="w-full border-t border-gray-600 my-4" />
@@ -137,6 +143,7 @@ export default {
         return {
             ticker: '',
             tickers: [],
+            isAddedTicker: false,
             selectedTicker: null,
             graph: [],
             isHidePreloader: true,
@@ -270,7 +277,9 @@ export default {
         },
 
         add(coin) {
-            console.log(coin)
+            // console.log(coin)
+            if(this.checkTicker(coin)) return;
+
             const currentTicker = {
                 name: coin.toUpperCase(),
                 price: '-'
@@ -283,7 +292,26 @@ export default {
             this.filter = '';
         },
 
+        checkTicker(ticker) {
+
+            this.tickers.forEach((coin) => {
+                console.log(coin.name === ticker)
+                if (coin.name === ticker) {
+                    this.isAddedTicker = true;
+                }
+            });
+
+            return this.isAddedTicker;
+        },
+
+        resetTicker() {
+            if(this.isAddedTicker) {
+                this.isAddedTicker = !this.isAddedTicker;
+            }
+        },
+
         find(coin) {
+            // FIXME add lower case coin!
             let regexp = new RegExp(`^${coin.toUpperCase()}`);
             const coinsList = this.allCoinNames.filter((coinName) => regexp.test(coinName));
             this.coinsList = coinsList.sort().splice(0, 4);
@@ -303,6 +331,10 @@ export default {
     },
 
     watch: {
+        ticker() {
+            this.resetTicker();
+        },
+
         selectedTicker() {
             this.graph = [];
 

@@ -8,7 +8,7 @@
                         v-model="ticker"
                         @keydown.enter="add(ticker)"
                         @keyup="find"
-                        @input="isAddedTicker = false"
+                        @keydown="resetTickerStatus"
                         type="text"
                         name="wallet"
                         id="wallet"
@@ -26,6 +26,7 @@
                         {{ coin }}
                     </span>
                 </div>
+                {{ isAddedTicker }}
                 <div v-if="isAddedTicker" class="text-sm text-red-600">Такой тикер уже добавлен</div>
             </div>
         </div>
@@ -48,41 +49,32 @@ export default {
             default: () => [],
         },
 
-        tickersList: {
-            type: Array,
-            default: () => [],
+        isAddedTicker: {
+            type: Boolean,
+            default: false,
         },
     },
 
     data() {
         return {
             ticker: '',
-            isAddedTicker: false,
         }
     },
 
     methods: {
         add(ticker) {
-            if(this.checkTicker(ticker)) return;
-
             this.$emit('add-ticker', ticker);
-        },
-
-        checkTicker(ticker) {
-            this.isAddedTicker = false;
-
-            this.tickersList.forEach((coin) => {
-                if (coin.name === ticker) {
-                    this.isAddedTicker = true;
-                }
-            });
-
-            return this.isAddedTicker;
         },
 
         find() {
             this.$emit('find-ticker', this.ticker)
         },
+
+        resetTickerStatus() {
+            // FIXME not reset status!
+            console.log('resetTickerStatus')
+            this.$emit('reset-ticker')
+        }
     },
 }
 </script>
