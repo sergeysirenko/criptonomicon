@@ -277,7 +277,6 @@ export default {
         },
 
         add(coin) {
-            // console.log(coin)
             if(this.checkTicker(coin)) return;
 
             const currentTicker = {
@@ -295,8 +294,7 @@ export default {
         checkTicker(ticker) {
 
             this.tickers.forEach((coin) => {
-                console.log(coin.name === ticker)
-                if (coin.name === ticker) {
+                if (coin.name === ticker.toUpperCase()) {
                     this.isAddedTicker = true;
                 }
             });
@@ -305,13 +303,13 @@ export default {
         },
 
         resetTicker() {
+            console.log('resetTickerStatus - resetTicker')
             if(this.isAddedTicker) {
                 this.isAddedTicker = !this.isAddedTicker;
             }
         },
 
         find(coin) {
-            // FIXME add lower case coin!
             let regexp = new RegExp(`^${coin.toUpperCase()}`);
             const coinsList = this.allCoinNames.filter((coinName) => regexp.test(coinName));
             this.coinsList = coinsList.sort().splice(0, 4);
@@ -332,6 +330,7 @@ export default {
 
     watch: {
         ticker() {
+            console.log('resetTickerStatus - Watch')
             this.resetTicker();
         },
 

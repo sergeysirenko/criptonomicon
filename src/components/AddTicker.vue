@@ -72,7 +72,7 @@ export default {
 
         resetTickerStatus() {
             // FIXME not reset status!
-            console.log('resetTickerStatus')
+            console.log('resetTickerStatus - AddTicker')
             this.$emit('reset-ticker')
         }
     },
