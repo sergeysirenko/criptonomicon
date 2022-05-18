@@ -8,7 +8,6 @@
                         v-model="ticker"
                         @keydown.enter="add(ticker)"
                         @keyup="find"
-                        @keydown="resetTickerStatus"
                         type="text"
                         name="wallet"
                         id="wallet"
@@ -26,7 +25,6 @@
                         {{ coin }}
                     </span>
                 </div>
-                {{ isAddedTicker }}
                 <div v-if="isAddedTicker" class="text-sm text-red-600">Такой тикер уже добавлен</div>
             </div>
         </div>
@@ -61,6 +59,12 @@ export default {
         }
     },
 
+	watch: {
+		ticker() {
+			this.resetTickerStatus();
+		},
+	},
+
     methods: {
         add(ticker) {
             this.$emit('add-ticker', ticker);
@@ -71,8 +75,6 @@ export default {
         },
 
         resetTickerStatus() {
-            // FIXME not reset status!
-            console.log('resetTickerStatus - AddTicker')
             this.$emit('reset-ticker')
         }
     },

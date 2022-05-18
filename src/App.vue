@@ -22,7 +22,7 @@
         <AddTicker
             @add-ticker="add"
             @find-ticker="find"
-            :reset-ticker="resetTicker"
+            @reset-ticker="resetTicker"
             :coins-list="coinsList"
             :is-added-ticker="isAddedTicker"
         />
@@ -156,10 +156,6 @@ export default {
     },
 
     mounted() {
-        // const sw = new SharedWorker('sharedWorker.js');
-        //
-        // console.log(sw);
-
         window.addEventListener('resize', this.calculateMaxGraphElements)
     },
 
@@ -168,11 +164,6 @@ export default {
     },
 
     computed: {
-        // sharedWorker() {
-        //     const sw = new SharedWorker('sharedWorker.js');
-        //     return sw;
-        // },
-
         startIndex() {
             return (this.page - 1) * 6;
         },
@@ -218,7 +209,6 @@ export default {
             const data = await f.json();
             this.allCoinNames = Object.keys(data.Data);
             this.isHidePreloader = false;
-            // console.log(this.allCoinNames)
         })();
 
         const windowData = Object.fromEntries(new URL(window.location).searchParams.entries());
@@ -238,12 +228,7 @@ export default {
             this.tickers.forEach(ticker => {
                 subscribeToTicker(ticker.name, (newPrice) => this.updateTicker(ticker.name, newPrice))
             })
-
-            // setInterval(this.updateTickers, 60000)
         }
-
-        // const sw = new SharedWorker('sharedWorker.js');
-        // console.log(sw)
     },
 
     methods: {
@@ -254,7 +239,6 @@ export default {
         },
 
         updateTicker(tickerName, price) {
-            // console.log('updateTicker', this.$refs.graph)
             this.tickers
                 .filter(ticker => ticker.name === tickerName)
                 .forEach(ticker => {
@@ -286,7 +270,6 @@ export default {
 
             this.tickers = [...this.tickers, currentTicker];
 
-            // setInterval(this.updateTickers, 60000)
             subscribeToTicker(currentTicker.name, (newPrice) => this.updateTicker(currentTicker.name, newPrice))
             this.filter = '';
         },
@@ -303,7 +286,6 @@ export default {
         },
 
         resetTicker() {
-            console.log('resetTickerStatus - resetTicker')
             if(this.isAddedTicker) {
                 this.isAddedTicker = !this.isAddedTicker;
             }
@@ -330,7 +312,6 @@ export default {
 
     watch: {
         ticker() {
-            console.log('resetTickerStatus - Watch')
             this.resetTicker();
         },
 
