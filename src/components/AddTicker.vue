@@ -42,16 +42,18 @@ export default {
     },
 
     props: {
-        coinsList: {
-            type: Array,
-            default: () => [],
-        },
-
         isAddedTicker: {
             type: Boolean,
+			required: true,
             default: false,
         },
     },
+
+	emits: {
+		'add-ticker': value => typeof value === 'string',
+		'find-ticker': value => typeof value === 'string',
+		'reset-ticker': null,
+	},
 
     data() {
         return {
