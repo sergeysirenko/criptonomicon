@@ -47,6 +47,11 @@ export default {
 			required: true,
             default: false,
         },
+
+		coinsList: {
+			type: Array,
+			default: () => [],
+		},
     },
 
 	emits: {
@@ -78,7 +83,7 @@ export default {
 
         resetTickerStatus() {
             this.$emit('reset-ticker')
-        }
+        },
     },
 }
 </script>

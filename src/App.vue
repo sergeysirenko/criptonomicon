@@ -195,7 +195,7 @@ export default {
         },
 
         add(coin) {
-			if(coin.length > 0) return;
+			if(coin.length === 0) return;
 
             if(this.checkTicker(coin)) return;
 

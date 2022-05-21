@@ -60,6 +60,10 @@ export default {
 		},
 	},
 
+	// emits: {
+	// 	'close-graph': value => typeof value === 'object',
+	// },
+
 	computed: {
 		normalizedGraph() {
 			const maxValue = Math.max(...this.graph);
