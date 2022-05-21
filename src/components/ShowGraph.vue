@@ -60,9 +60,9 @@ export default {
 		},
 	},
 
-	// emits: {
-	// 	'close-graph': value => typeof value === 'object',
-	// },
+	emits: {
+		'close-graph': value => typeof value === 'object',
+	},
 
 	computed: {
 		normalizedGraph() {
