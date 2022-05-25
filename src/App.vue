@@ -29,27 +29,27 @@
 
         <template v-if="tickers.length">
             <hr class="w-full border-t border-gray-600 my-4" />
-            <div>
-                <div v-if="tickers.length > 6">
-                    <p>Страница {{ page }} из {{ Math.ceil(tickers.length / 6) }}</p>
-                    <button
-                        class="my-4 mx-2 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                        :disabled="!(page > 1)"
-                        :class="{ 'opacity-50 cursor-not-allowed': !(page > 1) }"
-                        @click="page -= 1"
-                    >
-                        Назад
-                    </button>
-                    <button
-                        class="my-4 mx-2 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                        @click="page = Number(page) + 1"
-                        :disabled="!hasNextPage"
-                        :class="{ 'opacity-50 cursor-not-allowed': !hasNextPage }"
-                    >
-                        Вперед
-                    </button>
-                </div>
-                <div>Фильтр: <input v-model="filter" class="border rounded-md"/></div>
+            <div class="flex flex-wrap justify-center md:justify-between">
+                <div class="flex items-center">Фильтр: <input v-model="filter" class="border rounded-md ml-1"/></div>
+				<div v-if="tickers.length > 6" class="flex items-center p-2 md:p-0">
+					<p>Страница {{ page }} из {{ Math.ceil(tickers.length / 6) }}</p>
+					<button
+						class="mx-2 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+						:disabled="page < 1"
+						:class="{ 'opacity-50 cursor-not-allowed': page < 1 }"
+						@click="page -= 1"
+					>
+						Назад
+					</button>
+					<button
+						class="mx-2 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+						@click="page = Number(page) + 1"
+						:disabled="!hasNextPage"
+						:class="{ 'opacity-50 cursor-not-allowed': !hasNextPage }"
+					>
+						Вперед
+					</button>
+				</div>
             </div>
             <hr class="w-full border-t border-gray-600 my-4" />
             <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
