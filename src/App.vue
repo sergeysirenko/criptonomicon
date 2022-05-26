@@ -89,16 +89,22 @@
                     </button>
                 </div>
             </dl>
+			<div class="flex justify-center mt-3">
+				<AddButton @click="console.log('ban')" :icon="ban" :inner-text="labels.delete_all" color-class="bg-red-600 hover:bg-red-700"/>
+			</div>
             <hr class="w-full border-t border-gray-600 my-4" />
         </template>
         <ShowGraph :selected-ticker="selectedTicker" @close-graph="selectedTicker = null"/>
     </div>
+	<PopUp></PopUp>
 </template>
 
 <script>
 import {subscribeToTicker, unsubscribeFromTicker} from './api';
 import AddTicker from "@/components/AddTicker";
+import AddButton from "@/components/AddButton";
 import ShowGraph from "@/components/ShowGraph";
+import PopUp from "@/components/PopUp";
 
 export default {
     name: 'App',
@@ -106,6 +112,8 @@ export default {
     components: {
         AddTicker,
 		ShowGraph,
+		AddButton,
+		PopUp,
     },
 
     data() {
@@ -119,6 +127,10 @@ export default {
             coinsList: [],
             page: 1,
             filter: '',
+			ban: "M6.707 4.879A3 3 0 018.828 4H15a3 3 0 013 3v6a3 3 0 01-3 3H8.828a3 3 0 01-2.12-.879l-4.415-4.414a1 1 0 010-1.414l4.414-4.414zm4 2.414a1 1 0 00-1.414 1.414L10.586 10l-1.293 1.293a1 1 0 101.414 1.414L12 11.414l1.293 1.293a1 1 0 001.414-1.414L13.414 10l1.293-1.293a1 1 0 00-1.414-1.414L12 8.586l-1.293-1.293z",
+			labels: {
+				delete_all: 'Удалить всё',
+			},
         };
     },
 
