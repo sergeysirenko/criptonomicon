@@ -13,7 +13,7 @@
             <path
                 class="opacity-75"
                 fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                :d="svg.circle"
             ></path>
         </svg>
     </div>
@@ -57,9 +57,7 @@
                     v-for="ticker in paginatedTickers"
                     :key="ticker.name"
                     @click="select(ticker)"
-                    :class="{
-                        'border-4': selectedTicker === ticker
-                    }"
+                    :class="{ 'border-4': selectedTicker === ticker }"
                     class="bg-white overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer"
                 >
                     <div class="px-4 py-5 sm:p-6 text-center" :class="{ 'bg-red-100' : ticker.price === '-'}">
@@ -73,34 +71,38 @@
                         @click.stop="handleDelete(ticker)"
                         class="flex items-center justify-center font-medium w-full bg-gray-100 px-4 py-4 sm:px-6 text-md text-gray-500 hover:text-gray-600 hover:bg-gray-200 hover:opacity-20 transition-all focus:outline-none"
                     >
-                        <svg
-                            class="h-5 w-5"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="#718096"
-                            aria-hidden="true"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                                clip-rule="evenodd"
-                            ></path></svg
-                        >Удалить
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#718096" aria-hidden="true">
+                            <path fill-rule="evenodd" clip-rule="evenodd" :d="svg.checkout"></path>
+						</svg>
+						Удалить
                     </button>
                 </div>
             </dl>
 			<div class="flex justify-center mt-3">
-				<AddButton @click="console.log('ban')" :icon="ban" :inner-text="labels.delete_all" color-class="bg-red-600 hover:bg-red-700"/>
+				<AddButton @click="isPopupShow = true" :icon="svg.ban" :inner-text="labels.delete_all" color-class="bg-red-600 hover:bg-red-700"/>
 			</div>
             <hr class="w-full border-t border-gray-600 my-4" />
         </template>
         <ShowGraph :selected-ticker="selectedTicker" @close-graph="selectedTicker = null"/>
     </div>
-	<PopUp></PopUp>
+	<PopUp :is-popup-show="isPopupShow" @close-popup="isPopupShow = false">
+		<template #header>
+			Вы действительно хотите все удалить!?
+		</template>
+		<template #main>
+			Подумайте хорошенько!
+		</template>
+		<template #footer>
+			<AddButton @click="isPopupShow = false" :inner-text="labels.cancel"/>
+			<AddButton @click="deleteAll" :icon="svg.checkout" :inner-text="labels.delete" color-class="bg-red-600 hover:bg-red-700"/>
+		</template>
+	</PopUp>
 </template>
 
 <script>
-import {subscribeToTicker, unsubscribeFromTicker} from './api';
+import { subscribeToTicker, unsubscribeFromTicker } from './api';
+import { circle, checkout, ban } from './svg-d';
+import { languageLoader } from '@/language/getter';
 import AddTicker from "@/components/AddTicker";
 import AddButton from "@/components/AddButton";
 import ShowGraph from "@/components/ShowGraph";
@@ -127,10 +129,14 @@ export default {
             coinsList: [],
             page: 1,
             filter: '',
-			ban: "M6.707 4.879A3 3 0 018.828 4H15a3 3 0 013 3v6a3 3 0 01-3 3H8.828a3 3 0 01-2.12-.879l-4.415-4.414a1 1 0 010-1.414l4.414-4.414zm4 2.414a1 1 0 00-1.414 1.414L10.586 10l-1.293 1.293a1 1 0 101.414 1.414L12 11.414l1.293 1.293a1 1 0 001.414-1.414L13.414 10l1.293-1.293a1 1 0 00-1.414-1.414L12 8.586l-1.293-1.293z",
-			labels: {
-				delete_all: 'Удалить всё',
+			svg: {
+				circle: circle,
+				checkout: checkout,
+				ban: ban,
 			},
+			labels: {},
+			language: 'ru',
+			isPopupShow: false,
         };
     },
 
@@ -191,7 +197,17 @@ export default {
         }
     },
 
+	mounted() {
+		this.loadLabels();
+	},
+
     methods: {
+		loadLabels() {
+			languageLoader( 'app', this.language )
+				.then( labels => this.labels = labels )
+				.catch( err => console.log( err ) );
+		},
+
         updateTicker(tickerName, price) {
             this.tickers
                 .filter(ticker => ticker.name === tickerName)
@@ -229,7 +245,6 @@ export default {
                     this.isAddedTicker = true;
                 }
             });
-
             return this.isAddedTicker;
         },
 
@@ -241,8 +256,10 @@ export default {
 
         find(coin) {
             let regexp = new RegExp(`^${coin.toUpperCase()}`);
-            const coinsList = this.allCoinNames.filter((coinName) => regexp.test(coinName));
-            this.coinsList = coinsList.sort().splice(0, 4);
+            this.coinsList = this.allCoinNames
+				.filter((coinName) => regexp.test(coinName))
+				.sort()
+				.splice(0, 4);
         },
 
         handleDelete(tickerToRemove) {
@@ -252,6 +269,13 @@ export default {
             }
             unsubscribeFromTicker(tickerToRemove.name)
         },
+
+		deleteAll() {
+			this.tickers.forEach((ticker) => {
+				unsubscribeFromTicker(ticker.name);
+			})
+			this.tickers = [];
+		},
 
         select(ticker) {
             this.selectedTicker = ticker;
@@ -284,7 +308,7 @@ export default {
                 `${window.location.pathname}?filter=${value.filter}&page=${value.page}`
             );
         }
-    }
+    },
 };
 </script>
 

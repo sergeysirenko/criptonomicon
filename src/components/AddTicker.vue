@@ -4,6 +4,7 @@
             <div class="max-w-xs">
 <!--                <label for="wallet" class="block text-sm font-medium text-gray-700">Тикер {{ ticker }}</label>-->
                 <div class="relative rounded-md shadow-md">
+					<div v-if="isAddedTicker" class="text-sm text-red-600">Такой тикер уже добавлен</div>
                     <input
                         v-model="ticker"
                         @keydown.enter="add(ticker)"
@@ -25,8 +26,6 @@
                     </span>
 					</div>
                 </div>
-
-                <div v-if="isAddedTicker" class="text-sm text-red-600">Такой тикер уже добавлен</div>
             </div>
 			<AddButton @click="add(ticker)" :icon="plus" :inner-text="labels.add"/>
         </div>
@@ -81,7 +80,6 @@ export default {
     methods: {
         add(ticker) {
             this.$emit('add-ticker', ticker);
-            this.ticker = '';
         },
 
         find() {
