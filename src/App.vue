@@ -1,20 +1,8 @@
 <template>
-    <div
-        v-if="isHidePreloader"
-        class="fixed w-100 h-100 opacity-80 bg-purple-800 inset-0 z-50 flex items-center justify-center"
-    >
-        <svg
-            class="animate-spin -ml-1 mr-3 h-12 w-12 text-white"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-        >
+    <div v-if="isHidePreloader" class="fixed w-100 h-100 opacity-80 bg-purple-800 inset-0 z-50 flex items-center justify-center">
+        <svg class="animate-spin -ml-1 mr-3 h-12 w-12 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path
-                class="opacity-75"
-                fill="currentColor"
-                :d="svg.circle"
-            ></path>
+            <path class="opacity-75" fill="currentColor" :d="svg.circle"></path>
         </svg>
     </div>
     <div class="container">
@@ -25,21 +13,22 @@
             @reset-ticker="resetTicker"
             :coins-list="coinsList"
             :is-added-ticker="isAddedTicker"
+			:is-reset-ticker="isResetTicker"
         />
 
         <template v-if="tickers.length">
             <hr class="w-full border-t border-gray-600 my-4" />
             <div class="flex flex-wrap justify-center md:justify-between">
-                <div class="flex items-center">Фильтр: <input v-model="filter" class="border rounded-md ml-1"/></div>
+                <div class="flex items-center">{{ labels.filter }}: <input v-model="filter" class="border rounded-md ml-1"/></div>
 				<div v-if="tickers.length > 6" class="flex items-center p-2 md:p-0">
-					<p>Страница {{ page }} из {{ Math.ceil(tickers.length / 6) }}</p>
+					<p>{{ labels.page }} {{ page }} {{ labels.from }} {{ Math.ceil(tickers.length / 6) }}</p>
 					<button
 						class="mx-2 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-						:disabled="page < 1"
-						:class="{ 'opacity-50 cursor-not-allowed': page < 1 }"
+						:disabled="page <= 1"
+						:class="{ 'opacity-50 cursor-not-allowed': page <= 1 }"
 						@click="page -= 1"
 					>
-						Назад
+						{{ labels.back }}
 					</button>
 					<button
 						class="mx-2 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
@@ -47,7 +36,7 @@
 						:disabled="!hasNextPage"
 						:class="{ 'opacity-50 cursor-not-allowed': !hasNextPage }"
 					>
-						Вперед
+						{{ labels.forward }}
 					</button>
 				</div>
             </div>
@@ -74,12 +63,12 @@
                         <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#718096" aria-hidden="true">
                             <path fill-rule="evenodd" clip-rule="evenodd" :d="svg.checkout"></path>
 						</svg>
-						Удалить
+						{{ labels.delete }}
                     </button>
                 </div>
             </dl>
 			<div class="flex justify-center mt-3">
-				<AddButton @click="isPopupShow = true" :icon="svg.ban" :inner-text="labels.delete_all" color-class="bg-red-600 hover:bg-red-700"/>
+				<AddButton @click="openPopUp" :icon="svg.ban" :inner-text="labels.delete_all" color-class="bg-red-600 hover:bg-red-700"/>
 			</div>
             <hr class="w-full border-t border-gray-600 my-4" />
         </template>
@@ -87,20 +76,27 @@
     </div>
 	<PopUp :is-popup-show="isPopupShow" @close-popup="isPopupShow = false">
 		<template #header>
-			Вы действительно хотите все удалить!?
+			{{ labels.do_you_really_want_to_delete_everything }}?
 		</template>
 		<template #main>
-			Подумайте хорошенько!
+			{{ labels.if_you_agree_then_enter }}: {{ labels.delete }}
+			<input type="text" v-model="youWantDelete">
 		</template>
 		<template #footer>
 			<AddButton @click="isPopupShow = false" :inner-text="labels.cancel"/>
-			<AddButton @click="deleteAll" :icon="svg.checkout" :inner-text="labels.delete" color-class="bg-red-600 hover:bg-red-700"/>
+			<AddButton
+				@click="youWantDelete === labels.delete ? deleteAll() : null"
+				:icon="svg.checkout"
+				:inner-text="labels.delete"
+				color-class="bg-red-600 hover:bg-red-700"
+				:class="{ 'opacity-50 cursor-not-allowed': !(youWantDelete === labels.delete) }"
+			/>
 		</template>
 	</PopUp>
 </template>
 
 <script>
-import { subscribeToTicker, unsubscribeFromTicker } from './api';
+import { subscribeToTicker, unsubscribeFromTicker, modalSend } from './api';
 import { circle, checkout, ban } from './svg-d';
 import { languageLoader } from '@/language/getter';
 import AddTicker from "@/components/AddTicker";
@@ -123,6 +119,7 @@ export default {
             ticker: '',
             tickers: [],
             isAddedTicker: false,
+			isResetTicker: false,
             selectedTicker: null,
             isHidePreloader: true,
             allCoinNames: [],
@@ -135,8 +132,9 @@ export default {
 				ban: ban,
 			},
 			labels: {},
-			language: 'ru',
+			language: 'en',
 			isPopupShow: false,
+			youWantDelete: '',
         };
     },
 
@@ -236,6 +234,7 @@ export default {
 
             subscribeToTicker(currentTicker.name, (newPrice) => this.updateTicker(currentTicker.name, newPrice))
             this.filter = '';
+            this.isResetTicker = true;
         },
 
         checkTicker(ticker) {
@@ -252,6 +251,7 @@ export default {
             if(this.isAddedTicker) {
                 this.isAddedTicker = !this.isAddedTicker;
             }
+			this.isResetTicker = false;
         },
 
         find(coin) {
@@ -275,11 +275,18 @@ export default {
 				unsubscribeFromTicker(ticker.name);
 			})
 			this.tickers = [];
+			this.isPopupShow = false;
+			modalSend();
 		},
 
         select(ticker) {
             this.selectedTicker = ticker;
-        }
+        },
+
+		openPopUp() {
+			this.youWantDelete = '';
+			this.isPopupShow = true;
+		},
     },
 
     watch: {

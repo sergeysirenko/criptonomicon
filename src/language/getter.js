@@ -1,8 +1,8 @@
 'use strict';
 
-export const languageLoader = (view, lang) => {
+export const languageLoader = (file, lang) => {
     return new Promise(done => {
-        import(`./views/${view}`).then(labels => {
+        import(`./labels/${file}`).then(labels => {
             done(labels[lang]);
         })
     })

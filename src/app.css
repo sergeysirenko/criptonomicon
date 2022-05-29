@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 #app {
-    margin: 15px;
+    margin: 25px 15px 15px 15px;
 }
 
 .container {
