@@ -11,6 +11,9 @@ import {
     en_filter,
     en_page,
     en_from,
+    en_this_ticker_is_already_added,
+    en_example,
+    en_add,
 } from '../lang-en'
 
 import {
@@ -24,6 +27,9 @@ import {
     ru_filter,
     ru_page,
     ru_from,
+    ru_this_ticker_is_already_added,
+    ru_example,
+    ru_add,
 } from '../lang-ru'
 
 // ==================
@@ -39,6 +45,9 @@ export const en = {
     filter: en_filter,
     page: en_page,
     from: en_from,
+    this_ticker_is_already_added: en_this_ticker_is_already_added,
+    example: en_example,
+    add: en_add,
 };
 
 export const ru = {
@@ -52,4 +61,7 @@ export const ru = {
     filter: ru_filter,
     page: ru_page,
     from: ru_from,
+    this_ticker_is_already_added: ru_this_ticker_is_already_added,
+    example: ru_example,
+    add: ru_add,
 };

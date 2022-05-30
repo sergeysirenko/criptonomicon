@@ -33,6 +33,7 @@
 
 <script>
 import { close } from "@/svg-d";
+
 export default {
 	name: "showGraph",
 

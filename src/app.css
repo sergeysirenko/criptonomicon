@@ -2,7 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 #app {
-    margin: 25px 15px 15px 15px;
+    padding: 25px 15px 15px 15px;
+    max-width: 830px;
+    margin: 0 auto;
 }
 
 .container {

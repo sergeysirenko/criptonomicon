@@ -1,11 +1,10 @@
 <template>
-	<div>
+	<div v-if="isPopupShow">
 		<div
-			v-if="isPopupShow"
 			@click="close"
 			class="fixed w-100 h-100 opacity-80 bg-purple-800 inset-0 z-30 flex items-center justify-center"
 		></div>
-		<div v-if="isPopupShow" class="popup z-50 flex flex-col justify-between bg-gray-100 overflow-hidden shadow rounded-lg border-purple-800 border-solid">
+		<div class="popup z-50 flex flex-col justify-between bg-gray-100 overflow-hidden shadow rounded-lg border-purple-800 border-solid">
 			<div class="px-4 py-5 sm:p-6 text-center">
 				<h2>
 					<slot name="header"></slot>
@@ -15,29 +14,24 @@
 				<slot name="main"></slot>
 			</div>
 			<div class="w-full flex justify-between py-2 px-2">
-				<slot name="footer" :close="close" :confirm="confirm">
-					<AddButton @click="close" :inner-text="labels.cancel"/>
-					<AddButton
-						@click="confirm"
-						:icon="svg.checkout"
-						:inner-text="labels.delete"
-						color-class="bg-red-600 hover:bg-red-700"
-						:class="{ 'opacity-50 cursor-not-allowed': !(youWantDelete === labels.delete) }"
-					/>
-				</slot>
+				<slot name="footer" :close="close"></slot>
 			</div>
 		</div>
 	</div>
 </template>
 
 <script>
-import AddButton from "@/components/AddButton";
+import { checkout } from "@/svg-d";
 
 export default {
 	name: "PopUp",
 
-	components: {
-		AddButton,
+	data() {
+		return {
+			svg: {
+				checkout: checkout,
+			},
+		}
 	},
 
 	emits: {
@@ -48,11 +42,6 @@ export default {
 		isPopupShow: {
 			type: Boolean,
 			default: false
-		},
-
-		youWantDelete: {
-			type: String,
-			default: ''
 		},
 	},
 

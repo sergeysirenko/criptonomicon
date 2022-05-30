@@ -7,37 +7,39 @@
     </div>
     <div class="container">
 
-        <AddTicker
-            @add-ticker="add"
-            @find-ticker="find"
-            @reset-ticker="resetTicker"
-            :coins-list="coinsList"
-            :is-added-ticker="isAddedTicker"
-			:is-reset-ticker="isResetTicker"
-        />
+        <div class="flex justify-between">
+			<AddTicker
+				@add-ticker="add"
+				@find-ticker="find"
+				@reset-ticker="resetTicker"
+				:coins-list="coinsList"
+				:is-added-ticker="isAddedTicker"
+				:is-reset-ticker="isResetTicker"
+				:labels="labels"
+			/>
+			<ChangeLanguage @change-language="changeLanguage" :language-list="languageList"/>
+		</div>
 
         <template v-if="tickers.length">
             <hr class="w-full border-t border-gray-600 my-4" />
             <div class="flex flex-wrap justify-center md:justify-between">
                 <div class="flex items-center">{{ labels.filter }}: <input v-model="filter" class="border rounded-md ml-1"/></div>
 				<div v-if="tickers.length > 6" class="flex items-center p-2 md:p-0">
-					<p>{{ labels.page }} {{ page }} {{ labels.from }} {{ Math.ceil(tickers.length / 6) }}</p>
-					<button
-						class="mx-2 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+					<p>{{ labels.page }} {{ page }} {{ labels.from?.toLowerCase() }} {{ Math.ceil(filteredTickers.length / 6) }}</p>
+					<AddButton
+						:inner-text="labels.back"
 						:disabled="page <= 1"
 						:class="{ 'opacity-50 cursor-not-allowed': page <= 1 }"
 						@click="page -= 1"
 					>
-						{{ labels.back }}
-					</button>
-					<button
-						class="mx-2 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+					</AddButton>
+					<AddButton
+						:inner-text="labels.forward"
 						@click="page = Number(page) + 1"
 						:disabled="!hasNextPage"
 						:class="{ 'opacity-50 cursor-not-allowed': !hasNextPage }"
 					>
-						{{ labels.forward }}
-					</button>
+					</AddButton>
 				</div>
             </div>
             <hr class="w-full border-t border-gray-600 my-4" />
@@ -80,16 +82,17 @@
 		</template>
 		<template #main>
 			{{ labels.if_you_agree_then_enter }}: {{ labels.delete }}
-			<input type="text" v-model="youWantDelete">
+			<input type="text" v-model="textToDelete">
 		</template>
-		<template #footer>
-			<AddButton @click="isPopupShow = false" :inner-text="labels.cancel"/>
+		<template #footer="{ close }">
+			<AddButton @click="close" :inner-text="labels.cancel"/>
 			<AddButton
-				@click="youWantDelete === labels.delete ? deleteAll() : null"
+				@click="deleteAll"
+				:disabled="!isDeleteConfirm"
 				:icon="svg.checkout"
 				:inner-text="labels.delete"
 				color-class="bg-red-600 hover:bg-red-700"
-				:class="{ 'opacity-50 cursor-not-allowed': !(youWantDelete === labels.delete) }"
+				:class="{ 'opacity-50 cursor-not-allowed': !isDeleteConfirm }"
 			/>
 		</template>
 	</PopUp>
@@ -103,6 +106,7 @@ import AddTicker from "@/components/AddTicker";
 import AddButton from "@/components/AddButton";
 import ShowGraph from "@/components/ShowGraph";
 import PopUp from "@/components/PopUp";
+import ChangeLanguage from "@/components/ChangeLanguage";
 
 export default {
     name: 'App',
@@ -112,7 +116,10 @@ export default {
 		ShowGraph,
 		AddButton,
 		PopUp,
+		ChangeLanguage,
     },
+
+	CONFIRMATION_TEXT: 'kek',
 
     data() {
         return {
@@ -124,6 +131,10 @@ export default {
             isHidePreloader: true,
             allCoinNames: [],
             coinsList: [],
+			languageList: [
+				{key: 'en', language: 'English'},
+				{key: 'ru', language: 'Русский'}
+			],
             page: 1,
             filter: '',
 			svg: {
@@ -134,7 +145,7 @@ export default {
 			labels: {},
 			language: 'en',
 			isPopupShow: false,
-			youWantDelete: '',
+			textToDelete: '',
         };
     },
 
@@ -165,6 +176,10 @@ export default {
                 page: this.page,
             }
         },
+
+		isDeleteConfirm() {
+			return this.textToDelete === this.labels.delete;
+		},
     },
 
     created: function () {
@@ -185,6 +200,7 @@ export default {
         })
 
         const tickersData = localStorage.getItem('criptonomicon-list');
+        this.language = localStorage.getItem('criptonomicon-language');
 
         if (tickersData) {
             this.tickers = JSON.parse(tickersData);
@@ -200,6 +216,10 @@ export default {
 	},
 
     methods: {
+		changeLanguage() {
+			this.language = localStorage.getItem('criptonomicon-language');
+		},
+
 		loadLabels() {
 			languageLoader( 'app', this.language )
 				.then( labels => this.labels = labels )
@@ -284,12 +304,16 @@ export default {
         },
 
 		openPopUp() {
-			this.youWantDelete = '';
+			this.textToDelete = '';
 			this.isPopupShow = true;
 		},
     },
 
     watch: {
+		language() {
+			this.loadLabels();
+		},
+
         ticker() {
             this.resetTicker();
         },
