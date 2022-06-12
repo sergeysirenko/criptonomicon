@@ -1,5 +1,5 @@
 <template>
-	<select @change="change">
+	<select @change="change" class="dark:bg-slate-800 dark:text-white">
 		<option v-for="item in languageList"
 			:key="item.key"
 			:value="item.key"

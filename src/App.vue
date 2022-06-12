@@ -7,7 +7,7 @@
     </div>
     <div class="container">
 
-        <div class="flex justify-between">
+        <div class="flex justify-between flex-col-reverse items-center sm:flex-row">
 			<AddTicker
 				@add-ticker="add"
 				@find-ticker="find"
@@ -16,14 +16,16 @@
 				:is-added-ticker="isAddedTicker"
 				:is-reset-ticker="isResetTicker"
 				:labels="labels"
+				class="mt-2 sm:mt-0"
 			/>
+			<ToggleMode @change="toggleDarkMode" :checked="darkMode" class="mt-2 sm:mt-0"/>
 			<ChangeLanguage @change-language="changeLanguage" :language-list="languageList"/>
 		</div>
 
         <template v-if="tickers.length">
             <hr class="w-full border-t border-gray-600 my-4" />
             <div class="flex flex-wrap justify-center md:justify-between">
-                <div class="flex items-center">{{ labels.filter }}: <input v-model="filter" class="border rounded-md ml-1"/></div>
+                <div class="flex items-center">{{ labels.filter }}: <input v-model="filter" class="border rounded-md ml-1 dark:bg-slate-800"/></div>
 				<div v-if="tickers.length > 6" class="flex items-center p-2 md:p-0">
 					<p>{{ labels.page }} {{ page }} {{ labels.from?.toLowerCase() }} {{ Math.ceil(filteredTickers.length / 6) }}</p>
 					<AddButton
@@ -49,18 +51,18 @@
                     :key="ticker.name"
                     @click="select(ticker)"
                     :class="{ 'border-4': selectedTicker === ticker }"
-                    class="bg-white overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer"
+                    class="bg-white overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer dark:bg-slate-800 dark:shadow-blue-500"
                 >
-                    <div class="px-4 py-5 sm:p-6 text-center" :class="{ 'bg-red-100' : ticker.price === '-'}">
-                        <dt class="text-sm font-medium text-gray-500 truncate">{{ ticker.name }} - USD</dt>
-                        <dd class="mt-1 text-3xl font-semibold text-gray-900">
+                    <div class="px-4 py-5 sm:p-6 text-center" :class="{ 'bg-red-100 dark:bg-red-300' : ticker.price === '-'}">
+                        <dt class="text-sm font-medium text-gray-500 truncate dark:text-white">{{ ticker.name }} - USD</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-gray-900 dark:text-gray-300">
                             {{ formatPrice(ticker.price) }}
                         </dd>
                     </div>
                     <div class="w-full border-t border-gray-200"></div>
                     <button
                         @click.stop="handleDelete(ticker)"
-                        class="flex items-center justify-center font-medium w-full bg-gray-100 px-4 py-4 sm:px-6 text-md text-gray-500 hover:text-gray-600 hover:bg-gray-200 hover:opacity-20 transition-all focus:outline-none"
+                        class="flex items-center justify-center font-medium w-full bg-gray-100 px-4 py-4 sm:px-6 text-md text-gray-500 hover:text-gray-600 hover:bg-gray-200 hover:opacity-20 transition-all focus:outline-none dark:bg-gray-400 dark:text-white"
                     >
                         <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#718096" aria-hidden="true">
                             <path fill-rule="evenodd" clip-rule="evenodd" :d="svg.checkout"></path>
@@ -107,11 +109,13 @@ import AddButton from "@/components/AddButton";
 import ShowGraph from "@/components/ShowGraph";
 import PopUp from "@/components/PopUp";
 import ChangeLanguage from "@/components/ChangeLanguage";
+import ToggleMode from "@/components/ToggleMode";
 
 export default {
     name: 'App',
 
     components: {
+		ToggleMode,
         AddTicker,
 		ShowGraph,
 		AddButton,
@@ -132,6 +136,7 @@ export default {
             allCoinNames: [],
             coinsList: [],
 			languageList: [
+				{key: 'ua', language: 'Українська'},
 				{key: 'en', language: 'English'},
 				{key: 'ru', language: 'Русский'}
 			],
@@ -146,6 +151,7 @@ export default {
 			language: 'en',
 			isPopupShow: false,
 			textToDelete: '',
+			darkMode: false,
         };
     },
 
@@ -200,7 +206,8 @@ export default {
         })
 
         const tickersData = localStorage.getItem('criptonomicon-list');
-        this.language = localStorage.getItem('criptonomicon-language');
+        this.language = localStorage.getItem('criptonomicon-language') || this.language;
+		this.darkMode = Boolean(localStorage.getItem('criptonomicon-mode')) || this.darkMode;
 
         if (tickersData) {
             this.tickers = JSON.parse(tickersData);
@@ -213,11 +220,26 @@ export default {
 
 	mounted() {
 		this.loadLabels();
+		this.checkDarkMode();
 	},
 
     methods: {
 		changeLanguage() {
 			this.language = localStorage.getItem('criptonomicon-language');
+		},
+
+		toggleDarkMode() {
+			this.darkMode = !this.darkMode
+			this.checkDarkMode();
+			localStorage.setItem('criptonomicon-mode', this.darkMode);
+		},
+
+		checkDarkMode() {
+			if (this.darkMode) {
+				document.documentElement.classList.add('dark')
+			} else {
+				document.documentElement.classList.remove('dark')
+			}
 		},
 
 		loadLabels() {

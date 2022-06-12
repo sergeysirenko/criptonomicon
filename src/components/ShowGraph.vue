@@ -1,6 +1,6 @@
 <template>
 	<section v-if="selectedTicker" class="relative">
-		<h3 class="text-lg leading-6 font-medium text-gray-900 my-8">{{ selectedTicker.name }} - USD</h3>
+		<h3 class="text-lg leading-6 font-medium text-gray-900 my-8 dark:text-gray-300">{{ selectedTicker.name }} - USD</h3>
 		<div class="flex items-end border-gray-600 border-b border-l h-64" ref="graph">
 			<div
 				v-for="(bar, idx) in normalizedGraph"
