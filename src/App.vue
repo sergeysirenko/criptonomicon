@@ -148,7 +148,7 @@ export default {
 				ban: ban,
 			},
 			labels: {},
-			language: 'en',
+			language: 'ua',
 			isPopupShow: false,
 			textToDelete: '',
 			darkMode: false,
