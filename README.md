@@ -1,5 +1,7 @@
 # criptonomicon
 
+[You can see the app here](https://criptonomicon.herokuapp.com/)
+
 ## Project setup
 ```
 npm install
