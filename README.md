@@ -1,4 +1,4 @@
-# criptonomicon
+# Criptonomicon
 
 [You can see the app on Heroku](https://criptonomicon.herokuapp.com/)
 
